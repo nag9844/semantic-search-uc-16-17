@@ -16,7 +16,7 @@ permissions:
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION || 'ap-south-1' }}
-  TF_VAR_openai_api_key: ${{ var.OPEN_AI_API_KEY }}
+  TF_VAR_openai_api_key: ${{ secrets.OPEN_AI_API_KEY }}
 
 jobs:
   # lint-and-security:
