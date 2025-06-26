@@ -13,18 +13,27 @@ resource "aws_db_parameter_group" "main" {
   name   = "${var.project_name}-db-params"
 
   parameter {
-    name  = "shared_preload_libraries"
-    value = "vector"
+    name         = "log_statement"
+    value        = "all"
+    apply_method = "immediate"
   }
 
   parameter {
-    name  = "log_statement"
-    value = "all"
+    name         = "log_min_duration_statement"
+    value        = "1000"
+    apply_method = "immediate"
   }
 
   parameter {
-    name  = "log_min_duration_statement"
-    value = "1000"
+    name         = "shared_preload_libraries"
+    value        = "auto_explain,pg_stat_statements"
+    apply_method = "pending-reboot"
+  }
+
+  parameter {
+    name         = "auto_explain.log_min_duration"
+    value        = "1000"
+    apply_method = "immediate"
   }
 
   tags = {
@@ -97,7 +106,7 @@ resource "aws_iam_role_policy_attachment" "rds_monitoring" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
 }
 
-# Database initialization script
+# Create the database initialization script directory
 resource "aws_ssm_parameter" "db_init_script" {
   name  = "/${var.project_name}/database/init-script"
   type  = "String"
