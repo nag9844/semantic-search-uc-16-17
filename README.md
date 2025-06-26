@@ -1,49 +1,120 @@
-graph TD
-    subgraph Use Case 16: Ingestion & Indexing
-        A[Large Text Files (e.g., PDFs, Logs)] --> B(AWS S3)
+# Semantic Search Infrastructure
 
-        B -- File Download (boto3) --> C[Application Server / Processing Service]
-        C -- Parse & Chunk (tiktoken/nltk) --> D[Text Chunks]
-        D -- Generate Embeddings (OpenAI/Cohere/HuggingFace) --> E[Vector Embeddings]
+This Terraform configuration deploys a complete semantic search infrastructure on AWS for processing and searching large documents using vector embeddings.
 
-        E -- Store (pgvector) --> F[PostgreSQL Database]
-        D -- Store (chunk text) --> F
-    end
+## Architecture
 
-    subgraph Use Case 17: Semantic Search API
-        G[User / Client Application] --> H[API Gateway (POST /search)]
+- **S3**: Document storage with event notifications
+- **Lambda**: Document processing and search functions
+- **RDS PostgreSQL**: Vector database with pgvector extension
+- **API Gateway**: RESTful API endpoints
+- **VPC**: Secure network isolation
 
-        H -- Trigger --> I[AWS Lambda Function]
+## Prerequisites
 
-        I -- Convert Query to Embedding (OpenAI/HuggingFace) --> J[Query Embedding]
-        J -- Query (pgvector similarity search) --> F
+1. AWS CLI configured with appropriate permissions
+2. Terraform >= 1.0 installed
+3. OpenAI API key for embeddings
+4. Python 3.9+ for Lambda development
 
-        F -- Top N Results --> I
-        I -- Return Results --> H
-        H -- Response --> G
-    end
+## Quick Start
 
-    style A fill:#f9f,stroke:#333,stroke-width:2px
-    style B fill:#87CEEB,stroke:#333,stroke-width:2px
-    style C fill:#90EE90,stroke:#333,stroke-width:2px
-    style D fill:#FFFACD,stroke:#333,stroke-width:2px
-    style E fill:#ADD8E6,stroke:#333,stroke-width:2px
-    style F fill:#DAA520,stroke:#333,stroke-width:2px
-    style G fill:#f9f,stroke:#333,stroke-width:2px
-    style H fill:#87CEEB,stroke:#333,stroke-width:2px
-    style I fill:#90EE90,stroke:#333,stroke-width:2px
-    style J fill:#ADD8E6,stroke:#333,stroke-width:2px
+1. **Clone and setup**:
+   ```bash
+   git clone <repository>
+   cd terraform
+   ```
 
-    linkStyle 0 stroke:#666,stroke-width:2px,fill:none;
-    linkStyle 1 stroke:#666,stroke-width:2px,fill:none;
-    linkStyle 2 stroke:#666,stroke-width:2px,fill:none;
-    linkStyle 3 stroke:#666,stroke-width:2px,fill:none;
-    linkStyle 4 stroke:#666,stroke-width:2px,fill:none;
-    linkStyle 5 stroke:#666,stroke-width:2px,fill:none;
-    linkStyle 6 stroke:#666,stroke-width:2px,fill:none;
-    linkStyle 7 stroke:#666,stroke-width:2px,fill:none;
-    linkStyle 8 stroke:#666,stroke-width:2px,fill:none;
-    linkStyle 9 stroke:#666,stroke-width:2px,fill:none;
-    linkStyle 10 stroke:#666,stroke-width:2px,fill:none;
-    linkStyle 11 stroke:#666,stroke-width:2px,fill:none;
-    linkStyle 12 stroke:#666,stroke-width:2px,fill:none;
+2. **Configure variables**:
+   ```bash
+   cp terraform.tfvars.example terraform.tfvars
+   # Edit terraform.tfvars with your values
+   ```
+
+3. **Deploy infrastructure**:
+   ```bash
+   terraform init
+   terraform plan
+   terraform apply
+   ```
+
+4. **Initialize database**:
+   After deployment, connect to the RDS instance and run the initialization script:
+   ```bash
+   # Get the database endpoint from terraform output
+   terraform output database_endpoint
+   
+   # Connect and run the init script
+   psql -h <endpoint> -U postgres -d semantic_search -f modules/database/scripts/init_database.sql
+   ```
+
+## Configuration
+
+### Required Variables
+
+- `db_master_password`: Secure password for PostgreSQL
+- `openai_api_key`: OpenAI API key for embeddings
+
+### Optional Variables
+
+- `project_name`: Project name for resource naming (default: "semantic-search")
+- `environment`: Environment name (default: "dev")
+- `aws_region`: AWS region (default: "us-west-2")
+- `vpc_cidr`: VPC CIDR block (default: "10.0.0.0/16")
+
+## Usage
+
+### Upload Documents
+
+Upload PDF files to the S3 bucket under the `documents/` prefix:
+
+```bash
+aws s3 cp document.pdf s3://<bucket-name>/documents/
+```
+
+### Search Documents
+
+Use the API Gateway endpoint to search:
+
+```bash
+curl -X POST https://<api-id>.execute-api.<region>.amazonaws.com/dev/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "your search query", "limit": 10}'
+```
+
+## Monitoring
+
+- CloudWatch logs for Lambda functions
+- RDS performance insights
+- API Gateway metrics
+
+## Security Features
+
+- VPC isolation with private subnets
+- Encrypted S3 storage
+- RDS encryption at rest and in transit
+- IAM roles with least privilege
+
+## Cost Optimization
+
+- Use appropriate instance sizes for your workload
+- Monitor OpenAI API usage
+- Set up CloudWatch alarms for cost monitoring
+- Consider using Reserved Instances for production
+
+## Troubleshooting
+
+1. **Lambda timeout errors**: Increase timeout and memory for document processing
+2. **Database connection issues**: Check security groups and VPC configuration
+3. **Embedding generation failures**: Verify OpenAI API key and rate limits
+4. **S3 event not triggering**: Check S3 bucket notifications and Lambda permissions
+
+## Cleanup
+
+To destroy all resources:
+
+```bash
+terraform destroy
+```
+
+**Warning**: This will permanently delete all data. Make sure to backup important documents first.
