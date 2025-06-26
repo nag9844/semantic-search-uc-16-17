@@ -45,7 +45,7 @@
 | <a name="input_db_master_password"></a> [db\_master\_password](#input\_db\_master\_password) | RDS master password | `string` | `"demo#4317"` | no |
 | <a name="input_db_master_username"></a> [db\_master\_username](#input\_db\_master\_username) | RDS master username | `string` | `"postgres"` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, staging, prod) | `string` | `"dev"` | no |
-| <a name="input_openai_api_key"></a> [openai\_api\_key](#input\_openai\_api\_key) | OpenAI API key for embeddings | `string` | `"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"` | no |
+| <a name="input_openai_api_key"></a> [openai\_api\_key](#input\_openai\_api\_key) | OpenAI API key for embeddings | `string` | n/a | yes |
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name for resource naming | `string` | `"semantic-search"` | no |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR block for VPC | `string` | `"10.0.0.0/16"` | no |
 
