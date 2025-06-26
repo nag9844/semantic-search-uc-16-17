@@ -56,10 +56,12 @@ variable "db_master_password" {
   description = "RDS master password"
   type        = string
   sensitive   = true
+  default = "demo#4317"
 }
 
 variable "openai_api_key" {
   description = "OpenAI API key for embeddings"
   type        = string
   sensitive   = true
+  default = "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"
 }
